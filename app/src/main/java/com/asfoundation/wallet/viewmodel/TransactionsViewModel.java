@@ -34,7 +34,6 @@ import com.asfoundation.wallet.router.TransactionDetailRouter;
 import com.asfoundation.wallet.service.LocalCurrencyConversionService;
 import com.asfoundation.wallet.transactions.Transaction;
 import com.asfoundation.wallet.transactions.TransactionsAnalytics;
-import com.asfoundation.wallet.transactions.TransactionsMapper;
 import com.asfoundation.wallet.ui.AppcoinsApps;
 import com.asfoundation.wallet.ui.appcoins.applications.AppcoinsApplication;
 import com.asfoundation.wallet.ui.gamification.GamificationInteractor;
@@ -75,7 +74,6 @@ public class TransactionsViewModel extends BaseViewModel {
   private final CompositeDisposable disposables;
   private final DefaultTokenProvider defaultTokenProvider;
   private final GetDefaultWalletBalance getDefaultWalletBalance;
-  private final TransactionsMapper transactionsMapper;
   private final AirdropRouter airdropRouter;
   private final AppcoinsApps applications;
   private final TopUpRouter topUpRouter;
@@ -90,11 +88,11 @@ public class TransactionsViewModel extends BaseViewModel {
 
   TransactionsViewModel(FindDefaultNetworkInteract findDefaultNetworkInteract,
       FindDefaultWalletInteract findDefaultWalletInteract,
-      FetchTransactionsInteract fetchTransactionsInteract, SettingsRouter settingsRouter,
-      SendRouter sendRouter, TransactionDetailRouter transactionDetailRouter,
-      MyAddressRouter myAddressRouter, MyTokensRouter myTokensRouter,
-      ExternalBrowserRouter externalBrowserRouter, DefaultTokenProvider defaultTokenProvider,
-      GetDefaultWalletBalance getDefaultWalletBalance, TransactionsMapper transactionsMapper,
+      FetchTransactionsInteract fetchTransactionsInteract,
+      SettingsRouter settingsRouter, SendRouter sendRouter,
+      TransactionDetailRouter transactionDetailRouter, MyAddressRouter myAddressRouter,
+      MyTokensRouter myTokensRouter, ExternalBrowserRouter externalBrowserRouter,
+      DefaultTokenProvider defaultTokenProvider, GetDefaultWalletBalance getDefaultWalletBalance,
       AirdropRouter airdropRouter, AppcoinsApps applications,
       OffChainTransactions offChainTransactions, RewardsLevelRouter rewardsLevelRouter,
       GamificationInteractor gamificationInteractor, TopUpRouter topUpRouter,
@@ -112,7 +110,6 @@ public class TransactionsViewModel extends BaseViewModel {
     this.rewardsLevelRouter = rewardsLevelRouter;
     this.defaultTokenProvider = defaultTokenProvider;
     this.getDefaultWalletBalance = getDefaultWalletBalance;
-    this.transactionsMapper = transactionsMapper;
     this.airdropRouter = airdropRouter;
     this.applications = applications;
     this.offChainTransactions = offChainTransactions;
@@ -183,11 +180,11 @@ public class TransactionsViewModel extends BaseViewModel {
     handler.removeCallbacks(startFetchTransactionsTask);
     progress.postValue(shouldShowProgress);
     /*For specific address use: new Wallet("0x60f7a1cbc59470b74b1df20b133700ec381f15d3")*/
-    disposables.add(Observable.merge(fetchTransactionsInteract.fetch(defaultWallet.getValue())
-        .flatMapSingle(transactionsMapper::map), findDefaultNetworkInteract.find()
-        .filter(this::shouldShowOffChainInfo)
-        .flatMapObservable(__ -> offChainTransactions.getTransactions()
-            .toObservable()))
+    disposables.add(Observable.merge(fetchTransactionsInteract.fetch(defaultWallet.getValue()),
+        findDefaultNetworkInteract.find()
+            .filter(this::shouldShowOffChainInfo)
+            .flatMapObservable(__ -> offChainTransactions.getTransactions(true)
+                .toObservable()))
         .observeOn(AndroidSchedulers.mainThread())
         .flatMapCompletable(
             transactions -> publishMaxBonus().observeOn(AndroidSchedulers.mainThread())

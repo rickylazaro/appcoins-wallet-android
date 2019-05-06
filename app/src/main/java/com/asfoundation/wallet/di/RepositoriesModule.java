@@ -17,8 +17,6 @@ import com.asfoundation.wallet.repository.TokensRealmSource;
 import com.asfoundation.wallet.repository.TrackPendingTransactionService;
 import com.asfoundation.wallet.repository.TrackTransactionService;
 import com.asfoundation.wallet.repository.TransactionLocalSource;
-import com.asfoundation.wallet.repository.TransactionRepository;
-import com.asfoundation.wallet.repository.TransactionRepositoryType;
 import com.asfoundation.wallet.repository.TransactionsRealmCache;
 import com.asfoundation.wallet.repository.WalletRepository;
 import com.asfoundation.wallet.repository.WalletRepositoryType;
@@ -34,7 +32,6 @@ import com.asfoundation.wallet.service.TokenExplorerClientType;
 import com.asfoundation.wallet.service.TransactionsNetworkClient;
 import com.asfoundation.wallet.service.TransactionsNetworkClientType;
 import com.asfoundation.wallet.service.Web3jKeystoreAccountService;
-import com.asfoundation.wallet.ui.iab.raiden.MultiWalletNonceObtainer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import dagger.Module;
@@ -99,15 +96,6 @@ import static com.asfoundation.wallet.C.ROPSTEN_NETWORK_NAME;
   @Singleton @Provides @Named("no_wait_transaction")
   TrackTransactionService providesNoWaitTransactionTransactionTrackTransactionService() {
     return new NotTrackTransactionService();
-  }
-
-  @Singleton @Provides TransactionRepositoryType provideTransactionRepository(
-      NetworkInfo networkInfo, AccountKeystoreService accountKeystoreService,
-      TransactionsNetworkClientType blockExplorerClient, TransactionLocalSource inDiskCache,
-      DefaultTokenProvider defaultTokenProvider, MultiWalletNonceObtainer nonceObtainer) {
-    return new TransactionRepository(networkInfo, accountKeystoreService, inDiskCache,
-        blockExplorerClient, defaultTokenProvider, new BlockchainErrorMapper(), nonceObtainer,
-        Schedulers.io());
   }
 
   @Singleton @Provides TransactionLocalSource provideTransactionInDiskCache(
