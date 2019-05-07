@@ -67,9 +67,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
     return new TransactionsViewModelFactory(findDefaultNetworkInteract, findDefaultWalletInteract,
         fetchTransactionsInteract, settingsRouter, sendRouter,
         transactionDetailRouter, myAddressRouter, myTokensRouter, externalBrowserRouter,
-        defaultTokenProvider, getDefaultWalletBalance, airdropRouter,
-        applications, offChainTransactions, rewardsLevelRouter, gamificationInteractor,
-        topUpRouter, analytics,localCurrencyConversionService);
+        defaultTokenProvider, getDefaultWalletBalance, airdropRouter, applications,
+        offChainTransactions, rewardsLevelRouter, gamificationInteractor, topUpRouter, analytics,localCurrencyConversionService);
   }
 
   @Provides FetchTransactionsInteract provideFetchTransactionsInteract(
