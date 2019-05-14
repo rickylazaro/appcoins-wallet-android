@@ -59,8 +59,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
       TransactionDetailRouter transactionDetailRouter, MyAddressRouter myAddressRouter,
       MyTokensRouter myTokensRouter, ExternalBrowserRouter externalBrowserRouter,
       DefaultTokenProvider defaultTokenProvider, GetDefaultWalletBalance getDefaultWalletBalance,
-      AirdropRouter airdropRouter, AppcoinsApps applications,
-      OffChainTransactions offChainTransactions, RewardsLevelRouter rewardsLevelRouter,
+      AirdropRouter airdropRouter, AppcoinsApps applications, RewardsLevelRouter rewardsLevelRouter,
       GamificationInteractor gamificationInteractor, TopUpRouter topUpRouter,
       TransactionsAnalytics analytics,
       LocalCurrencyConversionService localCurrencyConversionService) {
@@ -68,7 +67,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
         fetchTransactionsInteract, settingsRouter, sendRouter,
         transactionDetailRouter, myAddressRouter, myTokensRouter, externalBrowserRouter,
         defaultTokenProvider, getDefaultWalletBalance, airdropRouter, applications,
-        offChainTransactions, rewardsLevelRouter, gamificationInteractor, topUpRouter, analytics,localCurrencyConversionService);
+        rewardsLevelRouter, gamificationInteractor, topUpRouter, analytics,localCurrencyConversionService);
   }
 
   @Provides FetchTransactionsInteract provideFetchTransactionsInteract(

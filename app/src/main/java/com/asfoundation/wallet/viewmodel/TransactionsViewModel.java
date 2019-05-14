@@ -21,7 +21,6 @@ import com.asfoundation.wallet.interact.FetchTransactionsInteract;
 import com.asfoundation.wallet.interact.FindDefaultNetworkInteract;
 import com.asfoundation.wallet.interact.FindDefaultWalletInteract;
 import com.asfoundation.wallet.interact.GetDefaultWalletBalance;
-import com.asfoundation.wallet.repository.OffChainTransactions;
 import com.asfoundation.wallet.router.AirdropRouter;
 import com.asfoundation.wallet.router.ExternalBrowserRouter;
 import com.asfoundation.wallet.router.MyAddressRouter;
@@ -43,6 +42,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -77,24 +77,23 @@ public class TransactionsViewModel extends BaseViewModel {
   private final AirdropRouter airdropRouter;
   private final AppcoinsApps applications;
   private final TopUpRouter topUpRouter;
-  private final OffChainTransactions offChainTransactions;
   private final GamificationInteractor gamificationInteractor;
   private final TransactionsAnalytics analytics;
   private final LocalCurrencyConversionService localCurrencyConversionService;
   private Handler handler = new Handler();
   private final Runnable startGlobalBalanceTask = this::getGlobalBalance;
   private boolean hasTransactions = false;
+  private Disposable fetchTransactionsDisposable;
   private final Runnable startFetchTransactionsTask = () -> this.fetchTransactions(false);
 
   TransactionsViewModel(FindDefaultNetworkInteract findDefaultNetworkInteract,
       FindDefaultWalletInteract findDefaultWalletInteract,
-      FetchTransactionsInteract fetchTransactionsInteract,
-      SettingsRouter settingsRouter, SendRouter sendRouter,
-      TransactionDetailRouter transactionDetailRouter, MyAddressRouter myAddressRouter,
-      MyTokensRouter myTokensRouter, ExternalBrowserRouter externalBrowserRouter,
-      DefaultTokenProvider defaultTokenProvider, GetDefaultWalletBalance getDefaultWalletBalance,
-      AirdropRouter airdropRouter, AppcoinsApps applications,
-      OffChainTransactions offChainTransactions, RewardsLevelRouter rewardsLevelRouter,
+      FetchTransactionsInteract fetchTransactionsInteract, SettingsRouter settingsRouter,
+      SendRouter sendRouter, TransactionDetailRouter transactionDetailRouter,
+      MyAddressRouter myAddressRouter, MyTokensRouter myTokensRouter,
+      ExternalBrowserRouter externalBrowserRouter, DefaultTokenProvider defaultTokenProvider,
+      GetDefaultWalletBalance getDefaultWalletBalance, AirdropRouter airdropRouter,
+      AppcoinsApps applications, RewardsLevelRouter rewardsLevelRouter,
       GamificationInteractor gamificationInteractor, TopUpRouter topUpRouter,
       TransactionsAnalytics analytics,
       LocalCurrencyConversionService localCurrencyConversionService) {
@@ -112,7 +111,6 @@ public class TransactionsViewModel extends BaseViewModel {
     this.getDefaultWalletBalance = getDefaultWalletBalance;
     this.airdropRouter = airdropRouter;
     this.applications = applications;
-    this.offChainTransactions = offChainTransactions;
     this.gamificationInteractor = gamificationInteractor;
     this.topUpRouter = topUpRouter;
     this.analytics = analytics;
@@ -180,18 +178,21 @@ public class TransactionsViewModel extends BaseViewModel {
     handler.removeCallbacks(startFetchTransactionsTask);
     progress.postValue(shouldShowProgress);
     /*For specific address use: new Wallet("0x60f7a1cbc59470b74b1df20b133700ec381f15d3")*/
-    disposables.add(Observable.merge(fetchTransactionsInteract.fetch(defaultWallet.getValue()),
-        findDefaultNetworkInteract.find()
-            .filter(this::shouldShowOffChainInfo)
-            .flatMapObservable(__ -> offChainTransactions.getTransactions(true)
-                .toObservable()))
+    if (fetchTransactionsDisposable != null && !fetchTransactionsDisposable.isDisposed()) {
+      fetchTransactionsDisposable.dispose();
+    }
+    fetchTransactionsDisposable = fetchTransactionsInteract.fetch(defaultWallet.getValue().address)
         .observeOn(AndroidSchedulers.mainThread())
         .flatMapCompletable(
             transactions -> publishMaxBonus().observeOn(AndroidSchedulers.mainThread())
-                .andThen(onTransactions(transactions)))
+                .andThen(onTransactions(transactions))
+                .andThen(Completable.fromAction(this::onTransactionsFetchCompleted)))
         .onErrorResumeNext(throwable -> publishMaxBonus())
         .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(this::onTransactionsFetchCompleted, this::onError));
+        .doAfterTerminate(() -> fetchTransactionsInteract.stop())
+        .subscribe(() -> {
+        }, this::onError);
+    disposables.add(fetchTransactionsDisposable);
 
     if (shouldShowProgress) {
       disposables.add(applications.getApps()

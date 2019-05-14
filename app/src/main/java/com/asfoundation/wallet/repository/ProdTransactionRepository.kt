@@ -29,14 +29,16 @@ class ProdTransactionRepository(
 ) : TransactionRepository(networkInfo, accountKeystoreService,
     defaultTokenProvider, errorMapper, nonceObtainer, scheduler) {
 
-  override fun fetchTransaction(wallet: Wallet): Observable<List<Transaction>> {
-    return Observable.merge(getOnchainTransactions(networkInfo, wallet), getOffChainTransactions())
+  override fun fetchTransaction(wallet: String): Observable<List<Transaction>> {
+    return Observable.merge(getOnchainTransactions(networkInfo, wallet),
+        getOffChainTransactions(wallet))
   }
 
-  private fun getOffChainTransactions(): Observable<MutableList<Transaction>> {
+  private fun getOffChainTransactions(wallet: String): Observable<MutableList<Transaction>> {
     return Observable.just(networkInfo).flatMap {
       if (shouldShowOffChainInfo(it)) {
-        return@flatMap offChainTransactions.getTransactions(true).toObservable()
+        return@flatMap offChainTransactions.getTransactions(wallet, true)
+            .toObservable()
       } else {
         return@flatMap Observable.just(listOf<Transaction>())
       }
@@ -44,9 +46,10 @@ class ProdTransactionRepository(
   }
 
   private fun getOnchainTransactions(networkInfo: NetworkInfo,
-                                     wallet: Wallet): Observable<MutableList<Transaction>> {
-    return Single.merge(fetchFromCache(networkInfo, wallet),
-        fetchAndCacheFromNetwork(networkInfo, wallet))
+                                     wallet: String): Observable<MutableList<Transaction>> {
+    val walletAddress = Wallet(wallet)
+    return Single.merge(fetchFromCache(networkInfo, walletAddress),
+        fetchAndCacheFromNetwork(networkInfo, walletAddress))
         .flatMapSingle { mapper.map(it) }.toObservable()
   }
 
@@ -70,6 +73,9 @@ class ProdTransactionRepository(
           inDiskCache.putTransactions(networkInfo, wallet, transactions)
         }
         .andThen(inDiskCache.fetchTransaction(networkInfo, wallet))
+  }
+
+  override fun stop() {
   }
 
   private fun shouldShowOffChainInfo(networkInfo: NetworkInfo): Boolean {
