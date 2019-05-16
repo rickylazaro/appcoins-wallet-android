@@ -34,7 +34,7 @@ class ProdTransactionRepository(
         getOffChainTransactions(wallet))
   }
 
-  private fun getOffChainTransactions(wallet: String): Observable<MutableList<Transaction>> {
+  private fun getOffChainTransactions(wallet: String): Observable<List<Transaction>> {
     return Observable.just(networkInfo).flatMap {
       if (shouldShowOffChainInfo(it)) {
         return@flatMap offChainTransactions.getTransactions(wallet, true)
