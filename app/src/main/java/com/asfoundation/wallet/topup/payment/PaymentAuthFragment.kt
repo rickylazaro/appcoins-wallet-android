@@ -15,10 +15,10 @@ import com.adyen.core.models.paymentdetails.CreditCardPaymentDetails
 import com.adyen.core.models.paymentdetails.PaymentDetails
 import com.appcoins.wallet.bdsbilling.Billing
 import com.asf.wallet.R
+import com.asfoundation.wallet.billing.BillingService
 import com.asfoundation.wallet.billing.adyen.Adyen
 import com.asfoundation.wallet.billing.adyen.PaymentType
 import com.asfoundation.wallet.billing.authorization.AdyenAuthorization
-import com.asfoundation.wallet.billing.purchase.BillingFactory
 import com.asfoundation.wallet.interact.FindDefaultWalletInteract
 import com.asfoundation.wallet.navigator.UriNavigator
 import com.asfoundation.wallet.topup.TopUpActivityView
@@ -46,7 +46,7 @@ class PaymentAuthFragment : DaggerFragment(), PaymentAuthView {
   @Inject
   internal lateinit var defaultWalletInteract: FindDefaultWalletInteract
   @Inject
-  internal lateinit var billingFactory: BillingFactory
+  internal lateinit var billingService: BillingService
   @Inject
   internal lateinit var adyen: Adyen
   @Inject
@@ -144,7 +144,7 @@ class PaymentAuthFragment : DaggerFragment(), PaymentAuthView {
 
     presenter =
         PaymentAuthPresenter(this, appPackage, AndroidSchedulers.mainThread(),
-            CompositeDisposable(), adyen, billingFactory.getBilling(appPackage),
+            CompositeDisposable(), adyen, billingService,
             navigator, inAppPurchaseInteractor.billingMessagesMapper,
             inAppPurchaseInteractor)
   }
@@ -166,21 +166,24 @@ class PaymentAuthFragment : DaggerFragment(), PaymentAuthView {
       }
     }
 
-    genericErrorDialog = RxAlertDialog.Builder(context).setMessage(R.string.unknown_error)
+    genericErrorDialog = RxAlertDialog.Builder(context)
+        .setMessage(R.string.unknown_error)
         .setPositiveButton(R.string.ok)
         .build()
     disposables.add(genericErrorDialog.positiveClicks()
         .subscribe({ navigator.popViewWithError() }, { it.printStackTrace() }))
 
     networkErrorDialog =
-        RxAlertDialog.Builder(context).setMessage(R.string.notification_no_network_poa)
+        RxAlertDialog.Builder(context)
+            .setMessage(R.string.notification_no_network_poa)
             .setPositiveButton(R.string.ok)
             .build()
     disposables.add(networkErrorDialog.positiveClicks()
         .subscribe({ navigator.popViewWithError() }, { it.printStackTrace() }))
 
     paymentRefusedDialog =
-        RxAlertDialog.Builder(context).setMessage(R.string.notification_payment_refused)
+        RxAlertDialog.Builder(context)
+            .setMessage(R.string.notification_payment_refused)
             .setPositiveButton(R.string.ok)
             .build()
     disposables.add(paymentRefusedDialog.positiveClicks()

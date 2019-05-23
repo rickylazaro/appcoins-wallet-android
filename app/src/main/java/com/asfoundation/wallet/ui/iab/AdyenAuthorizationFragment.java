@@ -26,11 +26,11 @@ import com.adyen.core.utils.StringUtils;
 import com.appcoins.wallet.bdsbilling.Billing;
 import com.appcoins.wallet.billing.repository.entity.TransactionData;
 import com.asf.wallet.R;
+import com.asfoundation.wallet.billing.BillingService;
 import com.asfoundation.wallet.billing.adyen.Adyen;
 import com.asfoundation.wallet.billing.adyen.PaymentType;
 import com.asfoundation.wallet.billing.analytics.BillingAnalytics;
 import com.asfoundation.wallet.billing.authorization.AdyenAuthorization;
-import com.asfoundation.wallet.billing.purchase.BillingFactory;
 import com.asfoundation.wallet.interact.FindDefaultWalletInteract;
 import com.asfoundation.wallet.navigator.UriNavigator;
 import com.asfoundation.wallet.util.KeyboardUtils;
@@ -72,7 +72,7 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
   private static final String DEVELOPER_PAYLOAD_KEY = "developer_payload";
   @Inject InAppPurchaseInteractor inAppPurchaseInteractor;
   @Inject FindDefaultWalletInteract defaultWalletInteract;
-  @Inject BillingFactory billingFactory;
+  @Inject BillingService billingService;
   @Inject Adyen adyen;
   @Inject Billing billing;
   @Inject BillingAnalytics analytics;
@@ -129,8 +129,7 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
     navigator = new FragmentNavigator((UriNavigator) getActivity(), iabView);
 
     presenter = new AdyenAuthorizationPresenter(this, getAppPackage(), defaultWalletInteract,
-        AndroidSchedulers.mainThread(), new CompositeDisposable(), adyen,
-        billingFactory.getBilling(getAppPackage()), navigator,
+        AndroidSchedulers.mainThread(), new CompositeDisposable(), adyen, billingService, navigator,
         inAppPurchaseInteractor.getBillingMessagesMapper(), inAppPurchaseInteractor,
         getTransactionData(), getDeveloperPayload(), billing, getSkuId(), getType(), getOrigin(),
         getAmount().toString(), getCurrency(), getPaymentType(), analytics, Schedulers.io());
@@ -155,9 +154,11 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
     cardForm = view.findViewById(R.id.fragment_braintree_credit_card_form);
 
     // removing additional margin top of the credit card form to help in the layout build
-    View cardNumberParent = (View) cardForm.findViewById(R.id.bt_card_form_card_number).getParent();
-    ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) cardNumberParent.getLayoutParams();
-    lp.setMargins(0,0,0,0);
+    View cardNumberParent = (View) cardForm.findViewById(R.id.bt_card_form_card_number)
+        .getParent();
+    ViewGroup.MarginLayoutParams lp =
+        (ViewGroup.MarginLayoutParams) cardNumberParent.getLayoutParams();
+    lp.setMargins(0, 0, 0, 0);
     cardNumberParent.setLayoutParams(lp);
 
     walletAddressFooter = view.findViewById(R.id.wallet_address_footer);

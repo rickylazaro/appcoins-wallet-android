@@ -20,8 +20,6 @@ import com.appcoins.wallet.bdsbilling.WalletService;
 import com.asf.wallet.R;
 import com.asfoundation.wallet.billing.TransactionService;
 import com.asfoundation.wallet.billing.analytics.BillingAnalytics;
-import com.asfoundation.wallet.billing.purchase.BillingFactory;
-import com.asfoundation.wallet.navigator.UriNavigator;
 import dagger.android.support.DaggerFragment;
 import java.math.BigDecimal;
 import java.util.concurrent.Executors;
@@ -45,7 +43,6 @@ public class BillingWebViewFragment extends DaggerFragment {
   private static final String CURRENT_URL = "currentUrl";
 
   @Inject Billing billing;
-  @Inject BillingFactory billingFactory;
   @Inject WalletService walletService;
   @Inject TransactionService transactionService;
 
@@ -190,19 +187,17 @@ public class BillingWebViewFragment extends DaggerFragment {
   }
 
   public void sendPaymentMethodDetailsEvent() {
-    analytics.sendPaymentMethodDetailsEvent(currentDomain, currentSkuId,
-        currentAmount
-            .toString(), PAYMENT_METHOD_PAYPAL, currentType);
+    analytics.sendPaymentMethodDetailsEvent(currentDomain, currentSkuId, currentAmount.toString(),
+        PAYMENT_METHOD_PAYPAL, currentType);
   }
 
   public void sendPaymentEvent() {
-    analytics.sendPaymentEvent(currentDomain, currentSkuId, currentAmount
-        .toString(), PAYMENT_METHOD_PAYPAL, currentType);
+    analytics.sendPaymentEvent(currentDomain, currentSkuId, currentAmount.toString(),
+        PAYMENT_METHOD_PAYPAL, currentType);
   }
 
   public void sendRevenueEvent() {
-    inAppPurchaseInteractor.convertToFiat(currentAmount
-        .doubleValue(), EVENT_REVENUE_CURRENCY)
+    inAppPurchaseInteractor.convertToFiat(currentAmount.doubleValue(), EVENT_REVENUE_CURRENCY)
         .doOnSuccess(fiatValue -> analytics.sendRevenueEvent(String.valueOf(fiatValue.getAmount())))
         .subscribe();
   }

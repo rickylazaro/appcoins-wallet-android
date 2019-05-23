@@ -45,6 +45,7 @@ import com.asfoundation.wallet.analytics.LogcatAnalyticsLogger;
 import com.asfoundation.wallet.analytics.gamification.GamificationAnalytics;
 import com.asfoundation.wallet.apps.Applications;
 import com.asfoundation.wallet.billing.BDSTransactionService;
+import com.asfoundation.wallet.billing.BillingService;
 import com.asfoundation.wallet.billing.CreditsRemoteRepository;
 import com.asfoundation.wallet.billing.TransactionService;
 import com.asfoundation.wallet.billing.adyen.Adyen;
@@ -58,7 +59,6 @@ import com.asfoundation.wallet.billing.partners.InstallerSourceService;
 import com.asfoundation.wallet.billing.partners.PartnerAddressService;
 import com.asfoundation.wallet.billing.partners.PartnerWalletAddressService;
 import com.asfoundation.wallet.billing.partners.WalletAddressService;
-import com.asfoundation.wallet.billing.purchase.BillingFactory;
 import com.asfoundation.wallet.billing.share.BdsShareLinkRepository;
 import com.asfoundation.wallet.billing.share.ShareLinkRepository;
 import com.asfoundation.wallet.entity.NetworkInfo;
@@ -229,6 +229,10 @@ import static com.asfoundation.wallet.service.AppsApi.API_BASE_URL;
 
   @Singleton @Provides PasswordStore passwordStore(Context context) {
     return new TrustPasswordStore(context);
+  }
+
+  @Singleton @Provides @Named("MERCHANT_NAME") String provideMerchantName(Context context) {
+    return context.getPackageName();
   }
 
   @Singleton @Provides Logger provideLogger() {
@@ -650,11 +654,11 @@ import static com.asfoundation.wallet.service.AppsApi.API_BASE_URL;
     return new BDSTransactionService(remoteRepository);
   }
 
-  @Singleton @Provides BillingFactory provideCreditCardBillingFactory(
+  @Singleton @Provides BillingService provideCreditCardBillingFactory(
       TransactionService transactionService, WalletService walletService, Adyen adyen,
-      AddressService addressService) {
-    return merchantName -> new AdyenBillingService(merchantName, transactionService, walletService,
-        adyen, addressService);
+      AddressService addressService, @Named("MERCHANT_NAME") String merchantName) {
+    return new AdyenBillingService(merchantName, transactionService, walletService, adyen,
+        addressService);
   }
 
   @Singleton @Provides BdsPendingTransactionService provideBdsPendingTransactionService(
