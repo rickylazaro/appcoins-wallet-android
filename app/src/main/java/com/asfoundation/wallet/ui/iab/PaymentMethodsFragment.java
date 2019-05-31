@@ -109,6 +109,7 @@ public class PaymentMethodsFragment extends DaggerFragment implements PaymentMet
   private View bonusView;
   private View bonusMsg;
   private TextView bonusValue;
+  private TextView noBonusMsg;
 
   public static Fragment newInstance(TransactionBuilder transaction, String productName,
       boolean isBds, String developerPayload, String uri) {
@@ -191,7 +192,7 @@ public class PaymentMethodsFragment extends DaggerFragment implements PaymentMet
 
     bonusView = view.findViewById(R.id.bonus_layout);
     bonusMsg = view.findViewById(R.id.bonus_msg);
-
+    noBonusMsg = view.findViewById(R.id.no_bonus_msg);
     bonusValue = view.findViewById(R.id.bonus_value);
     setupAppNameAndIcon();
 
@@ -383,6 +384,7 @@ public class PaymentMethodsFragment extends DaggerFragment implements PaymentMet
   @Override public void hideBonus() {
     bonusView.setVisibility(View.INVISIBLE);
     bonusMsg.setVisibility(View.INVISIBLE);
+    noBonusMsg.setVisibility(View.VISIBLE);
   }
 
   @Override public void showBonus(@NotNull BigDecimal bonus, String currency) {
@@ -395,6 +397,8 @@ public class PaymentMethodsFragment extends DaggerFragment implements PaymentMet
 
     bonusValue.setText(getString(R.string.gamification_purchase_header_part_2,
         currency + scaledBonus.toPlainString()));
+
+    noBonusMsg.setVisibility(View.INVISIBLE);
     bonusView.setVisibility(View.VISIBLE);
     bonusMsg.setVisibility(View.VISIBLE);
   }
