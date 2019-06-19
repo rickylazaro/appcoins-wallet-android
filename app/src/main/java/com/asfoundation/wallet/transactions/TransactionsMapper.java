@@ -49,8 +49,9 @@ public class TransactionsMapper {
     for (int i = transactions.size() - 1; i >= 0; i--) {
       RawTransaction transaction = transactions.get(i);
       if (isAppcoinsTransaction(transaction, address)
-          && isApprovedTransaction(transaction) && i > 0 && isTransactionWithApprove(
-          transactions.get(i - 1))) {
+          && isApprovedTransaction(transaction)
+          && i > 0
+          && isTransactionWithApprove(transactions.get(i - 1))) {
         transactionList.add(0, mapTransactionWithApprove(transaction, transactions.get(i - 1)));
         i--;
       } else if (isAdsTransaction(transaction)) {
@@ -101,7 +102,8 @@ public class TransactionsMapper {
       }
       transactionList.add(0, new Transaction(transaction.getTxID(), txType, null,
           transaction.getTs()
-              .getTime(), status, transaction.getAmount()
+              .getTime(), transaction.getProcessedTime()
+          .getTime(), status, transaction.getAmount()
           .toString(), transaction.getSender(), transaction.getReceiver(),
           new TransactionDetails(sourceName,
               new TransactionDetails.Icon(TransactionDetails.Icon.Type.URL, transaction.getIcon()),
@@ -170,8 +172,8 @@ public class TransactionsMapper {
 
     return new Transaction(transaction.hash,
         com.asfoundation.wallet.transactions.Transaction.TransactionType.ADS, null,
-        transaction.timeStamp, getError(transaction), value, from, to, details, currency,
-        operations);
+        transaction.timeStamp, transaction.processedTime, getError(transaction), value, from, to,
+        details, currency, operations);
   }
 
   /**
@@ -206,7 +208,8 @@ public class TransactionsMapper {
     }
 
     return new Transaction(transaction.hash, STANDARD, null, transaction.timeStamp,
-        getError(transaction), value, transaction.from, transaction.to, null, currency, operations);
+        transaction.processedTime, getError(transaction), value, transaction.from, transaction.to,
+        null, currency, operations);
   }
 
   /**
@@ -258,8 +261,8 @@ public class TransactionsMapper {
     TransactionDetails details = getTransactionDetails(type, transaction.hash);
 
     return new Transaction(transaction.hash, type, approveTransaction.hash, transaction.timeStamp,
-        getError(transaction), value.toString(), transaction.from, transaction.to, details,
-        currency, operations);
+        transaction.processedTime, getError(transaction), value.toString(), transaction.from,
+        transaction.to, details, currency, operations);
   }
 
   private boolean isAdsTransaction(RawTransaction transaction) {
