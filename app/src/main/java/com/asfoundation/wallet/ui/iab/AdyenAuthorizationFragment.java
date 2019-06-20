@@ -17,12 +17,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.adyen.core.models.Amount;
 import com.adyen.core.models.PaymentMethod;
 import com.adyen.core.models.paymentdetails.CreditCardPaymentDetails;
 import com.adyen.core.models.paymentdetails.PaymentDetails;
-import com.adyen.core.utils.AmountUtil;
-import com.adyen.core.utils.StringUtils;
 import com.appcoins.wallet.bdsbilling.Billing;
 import com.appcoins.wallet.billing.repository.entity.TransactionData;
 import com.asf.wallet.R;
@@ -136,6 +133,11 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
         getAmount().toString(), getCurrency(), getPaymentType(), analytics, Schedulers.io());
   }
 
+  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
+      Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.dialog_credit_card_authorization, container, false);
+  }
+
   @Override public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
@@ -155,9 +157,11 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
     cardForm = view.findViewById(R.id.fragment_braintree_credit_card_form);
 
     // removing additional margin top of the credit card form to help in the layout build
-    View cardNumberParent = (View) cardForm.findViewById(R.id.bt_card_form_card_number).getParent();
-    ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) cardNumberParent.getLayoutParams();
-    lp.setMargins(0,0,0,0);
+    View cardNumberParent = (View) cardForm.findViewById(R.id.bt_card_form_card_number)
+        .getParent();
+    ViewGroup.MarginLayoutParams lp =
+        (ViewGroup.MarginLayoutParams) cardNumberParent.getLayoutParams();
+    lp.setMargins(0, 0, 0, 0);
     cardNumberParent.setLayoutParams(lp);
 
     walletAddressFooter = view.findViewById(R.id.wallet_address_footer);
@@ -205,11 +209,6 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
 
     showProduct();
     presenter.present(savedInstanceState);
-  }
-
-  @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
-      Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.dialog_credit_card_authorization, container, false);
   }
 
   @Override public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -311,12 +310,12 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
         .mergeWith(backButton);
   }
 
-  @Override public void showCvcView(Amount amount, PaymentMethod paymentMethod) {
+  @Override public void showCvcView(String amount, String currency, PaymentMethod paymentMethod) {
     cvcOnly = true;
     cardForm.findViewById(com.braintreepayments.cardform.R.id.bt_card_form_card_number_icon)
         .setVisibility(View.GONE);
     this.paymentMethod = paymentMethod;
-    showProductPrice(amount);
+    showProductPrice(amount, currency);
     preAuthorizedCardText.setVisibility(View.VISIBLE);
     preAuthorizedCardText.setText(paymentMethod.getName());
     changeCardButton.setVisibility(View.VISIBLE);
@@ -334,8 +333,8 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
   }
 
   @Override
-  public void showCreditCardView(PaymentMethod paymentMethod, Amount amount, boolean cvcStatus,
-      boolean allowSave, String publicKey, String generationTime) {
+  public void showCreditCardView(PaymentMethod paymentMethod, String amount, String currency,
+      boolean cvcStatus, boolean allowSave, String publicKey, String generationTime) {
     this.paymentMethod = paymentMethod;
     this.publicKey = publicKey;
     this.generationTime = generationTime;
@@ -343,7 +342,7 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
     preAuthorizedCardText.setVisibility(View.GONE);
     changeCardButton.setVisibility(View.GONE);
     rememberCardCheckBox.setVisibility(View.VISIBLE);
-    showProductPrice(amount);
+    showProductPrice(amount, currency);
     cardForm.setCardNumberIcon(0);
     cardForm.cardRequired(true)
         .expirationRequired(true)
@@ -423,8 +422,11 @@ public class AdyenAuthorizationFragment extends DaggerFragment implements AdyenA
     return creditCardPaymentDetails;
   }
 
-  private void showProductPrice(Amount amount) {
-    fiatPrice.setText(AmountUtil.format(amount, true, StringUtils.getLocale(getActivity())));
+  private void showProductPrice(String amount, String currency) {
+    fiatPrice.setText(new StringBuilder().append(amount)
+        .append(" ")
+        .append(currency)
+        .toString());
   }
 
   private CharSequence getApplicationName(String appPackage)

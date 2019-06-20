@@ -1,8 +1,6 @@
 package com.asfoundation.wallet.ui.iab;
 
 import android.os.Bundle;
-import com.adyen.core.PaymentRequest;
-import com.adyen.core.models.Amount;
 import com.adyen.core.models.PaymentMethod;
 import com.adyen.core.models.paymentdetails.PaymentDetails;
 import com.asfoundation.wallet.billing.authorization.AdyenAuthorization;
@@ -30,10 +28,10 @@ public interface AdyenAuthorizationView {
 
   Observable<Object> cancelEvent();
 
-  void showCvcView(Amount amount, PaymentMethod paymentMethod);
+  void showCvcView(String amount, String currency, PaymentMethod paymentMethod);
 
-  void showCreditCardView(PaymentMethod paymentMethod, Amount amount, boolean cvcStatus,
-      boolean allowSave, String publicKey, String generationTime);
+  void showCreditCardView(PaymentMethod paymentMethod, String amount, String currency,
+      boolean cvcStatus, boolean allowSave, String publicKey, String generationTime);
 
   void close(Bundle bundle);
 

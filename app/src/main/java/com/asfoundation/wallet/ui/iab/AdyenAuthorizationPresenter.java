@@ -53,10 +53,10 @@ public class AdyenAuthorizationPresenter {
   private final String currency;
   private final String appPackage;
   private final PaymentType paymentType;
+  private final Single<TransactionBuilder> transactionBuilder;
   private AdyenAuthorizationView view;
   private FindDefaultWalletInteract defaultWalletInteract;
   private BillingAnalytics analytics;
-  private final Single<TransactionBuilder> transactionBuilder;
   private boolean waitingResult;
   private Scheduler ioScheduler;
 
@@ -140,18 +140,22 @@ public class AdyenAuthorizationPresenter {
         .distinctUntilChanged(
             (paymentRequest, paymentRequest2) -> paymentRequest.equals(paymentRequest2))
         .flatMapMaybe(type -> adyen.getPaymentRequest()
-            .firstElement())
-        .observeOn(viewScheduler)
-        .doOnNext(data -> {
-          if (data.getPaymentMethod()
-              .getType()
-              .equals(PaymentMethod.Type.CARD)) {
-            view.showCreditCardView(data.getPaymentMethod(), data.getAmount(), true,
-                data.getShopperReference() != null, data.getPublicKey(), data.getGenerationTime());
-          } else {
-            view.showCvcView(data.getAmount(), data.getPaymentMethod());
-          }
-        })
+            .firstElement()
+            .flatMapSingleElement(data -> inAppPurchaseInteractor.getTransactionFiatAmount(
+                billingService.getTransactionUid())
+                .observeOn(viewScheduler)
+                .doOnSuccess(price -> {
+                  if (data.getPaymentMethod()
+                      .getType()
+                      .equals(PaymentMethod.Type.CARD)) {
+                    view.showCreditCardView(data.getPaymentMethod(), price.getValue(), "AUD", true,
+                        data.getShopperReference() != null, data.getPublicKey(),
+                        data.getGenerationTime());
+                  } else {
+                    view.showCvcView(price.getValue(), price.getCurrency(),
+                        data.getPaymentMethod());
+                  }
+                })))
         .observeOn(viewScheduler)
         .subscribe(__ -> {
         }, throwable -> showError(throwable)));

@@ -178,7 +178,7 @@ public class PaymentAuthPresenter {
   }
 
   private Single<Bundle> createBundle() {
-    return inAppPurchaseInteractor.getTransactionAmount(billingService.getTransactionUid())
+    return inAppPurchaseInteractor.getTransactionAPPCAmount(billingService.getTransactionUid())
         .retryWhen(errors -> {
           AtomicInteger counter = new AtomicInteger();
           return errors.takeWhile(e -> counter.getAndIncrement() != 3)
