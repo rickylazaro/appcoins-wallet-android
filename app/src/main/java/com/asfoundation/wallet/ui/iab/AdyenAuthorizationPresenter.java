@@ -53,10 +53,10 @@ public class AdyenAuthorizationPresenter {
   private final String currency;
   private final String appPackage;
   private final PaymentType paymentType;
-  private final Single<TransactionBuilder> transactionBuilder;
   private AdyenAuthorizationView view;
   private FindDefaultWalletInteract defaultWalletInteract;
   private BillingAnalytics analytics;
+  private final Single<TransactionBuilder> transactionBuilder;
   private boolean waitingResult;
   private Scheduler ioScheduler;
 
@@ -148,9 +148,9 @@ public class AdyenAuthorizationPresenter {
                   if (data.getPaymentMethod()
                       .getType()
                       .equals(PaymentMethod.Type.CARD)) {
-                    view.showCreditCardView(data.getPaymentMethod(), price.getValue(), "AUD", true,
-                        data.getShopperReference() != null, data.getPublicKey(),
-                        data.getGenerationTime());
+                    view.showCreditCardView(data.getPaymentMethod(), price.getValue(),
+                        price.getCurrency(), true, data.getShopperReference() != null,
+                        data.getPublicKey(), data.getGenerationTime());
                   } else {
                     view.showCvcView(price.getValue(), price.getCurrency(),
                         data.getPaymentMethod());
